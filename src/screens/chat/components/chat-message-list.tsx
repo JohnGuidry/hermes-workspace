@@ -1204,7 +1204,10 @@ function ChatMessageListComponent({
     }
   }, [thinkingAreaVisible])
 
-  const showActivityFeed = thinkingElapsed >= THINKING_ACTIVITY_DELAY_S
+  const showActivityFeed =
+    thinkingElapsed >= THINKING_ACTIVITY_DELAY_S ||
+    activeToolCalls.length > 0 ||
+    liveToolActivity.length > 0
 
   const shouldBottomPin =
     visibleEntries.length > 0 ||

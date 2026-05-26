@@ -1374,7 +1374,7 @@ export function ChatScreen({
       return deduped
     }
 
-    const nextMessages = [...deduped]
+    let nextMessages = [...deduped]
     const streamToolCalls = activeToolCalls.map((toolCall) => ({
       ...toolCall,
       phase: toolCall.phase,
@@ -1435,6 +1435,13 @@ export function ChatScreen({
         ...nextMessages[existingStreamIdx],
         ...streamingMsg,
       }
+      // Remove any other streaming messages (e.g. from mergeHistoryMessages
+      // appending a realtime message after finalDisplayMessages already
+      // injected a placeholder). Keep only one streaming placeholder.
+      const keepIdx = existingStreamIdx
+      nextMessages = nextMessages.filter(
+        (m, i) => i === keepIdx || m.__streamingStatus !== 'streaming',
+      )
       return nextMessages
     }
 
