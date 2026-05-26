@@ -903,6 +903,31 @@ export const useChatStore = create<ChatState>((set, get) => ({
         }
 
         if (duplicateIndex === -1) {
+          // Multiple message.started events from the agent create distinct
+          // realtime entries with empty content. Replace the previous empty
+          // assistant message instead of appending — prevents "3 individual
+          // messages then one final" bug where each tool phase looks like a
+          // separate assistant bubble.
+          if (
+            incomingMessage.role === 'assistant' &&
+            newPlainText.length === 0 &&
+            sessionMessages.length > 0
+          ) {
+            const prevEmptyIdx = sessionMessages.findLastIndex(
+              (m) =>
+                m.role === 'assistant' &&
+                extractMessageText(m).length === 0,
+            )
+            if (prevEmptyIdx >= 0) {
+              sessionMessages[prevEmptyIdx] = incomingMessage
+              messages.set(
+                sessionKey,
+                sortMessagesChronologically(sessionMessages),
+              )
+              set({ realtimeMessages: messages, lastEventAt: now })
+              break
+            }
+          }
           sessionMessages.push(incomingMessage)
           messages.set(sessionKey, sortMessagesChronologically(sessionMessages))
           set({ realtimeMessages: messages, lastEventAt: now })
